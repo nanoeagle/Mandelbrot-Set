@@ -32,7 +32,23 @@ function setUpCanvas() {
 	canvas = document.getElementById("fractal");
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
+	canvas.onclick = function(event) {
+		reComputeFractalSpecBasedOn({x: event.clientX, y: event.clientY});
+		startWorkers();
+	};
 	canvasContext = canvas.getContext("2d");
+}
+
+function reComputeFractalSpecBasedOn(point) {
+	var width = r_max - r_min;
+	var height = i_min - i_max;
+	var click_r = r_min + width * point.x / canvas.width;
+	var click_i = i_max + height * point.y / canvas.height;
+	var zoom = 8;
+	r_min = click_r - width / zoom;
+	r_max = click_r + width / zoom;
+	i_min = click_i + height / zoom;
+	i_max = click_i - height / zoom;
 }
 
 /* 
@@ -54,12 +70,12 @@ to actual colors of pixels in a row using the palette.
 */
 function drawRow(workerResult) {
 	setColorsOfEachPixel(workerResult);
-	canvasContext.putImageData(rowData, 0, workerResult.numberOfRows);
+	canvasContext.putImageData(rowData, 0, workerResult.rowIndex);
 }
 
 function setColorsOfEachPixel(workerResult) {
 	// The color value array in numbers that the worker sends back.
-	var colorValues = workerResult.values;
+	var colorValues = workerResult.colorValues;
 	// for each color index of each pixel in the row.
 	for (var i = 0; i < rowData.width; i++) {
 		var colorIndex = {

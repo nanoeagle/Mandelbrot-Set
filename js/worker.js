@@ -1,5 +1,5 @@
 importScripts("task.js");
 onmessage = function(event) {
-	var workerResult = computeRow(event.data);
+	var workerResult = handleTask(event.data);
 	postMessage(workerResult);
 };
