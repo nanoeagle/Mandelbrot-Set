@@ -1,5 +1,12 @@
 importScripts("task.js");
-onmessage = function(event) {
+
+onmessage = receiveTask;
+
+function receiveTask(event) {
 	var workerResult = handleTask(event.data);
+	sendBack(workerResult);
+}
+
+function sendBack(workerResult) {
 	postMessage(workerResult);
-};
+}

@@ -2,41 +2,36 @@ var numberOfWorkers = 8;
 var workers = []; 
 
 var rowIndex = 0;
-var magnification = 0;
+var magnification = 1;
 
 window.onload = function() {
 	setUpGraphics();
 	createWorkers();
+	window.onresize = resizeFractalToWindowSize;
 	startWorkers();
 };
 
 function createWorkers() {
 	for (var i = 0; i < numberOfWorkers; i++) {
 		var worker = new Worker("../js/worker.js");
-		worker.onmessage = function(event) {
-			worker.idle = true;
-			drawRow(event.data);
-			reassignTaskTo(event.target);
-		};
+		worker.onmessage = handleWorkerResult;
 		worker.idle = true;
 		workers.push(worker);
 	}
 }
 
-function reassignTaskTo(worker) {
-	if (isThereStillTask()) {
-		assignTaskIfWorkerIsIdle(worker);
-	} else {
-		worker.idle = true;
-	}
-}
+function handleWorkerResult(event) {
+	var worker = event.target;
+	worker.idle = true;
+	drawRow(event.data);
+	if (isThereStillTask()) assignTaskIfWorkerIsIdle(worker);
+};
 
 function isThereStillTask() {
 	return rowIndex < canvas.height;
 }
 
 function startWorkers() {
-	magnification++;
 	rowIndex = 0;
 	for (var i = 0; i < workers.length; i++) {
 		var worker = workers[i];
@@ -47,9 +42,11 @@ function startWorkers() {
 function assignTaskIfWorkerIsIdle(worker) {
 	if (worker.idle) {
 		var taskInfo = createTaskInfoForRowAt(rowIndex);
-		worker.postMessage(taskInfo);
-		worker.idle = false;
-		rowIndex++;
+		if (taskInfo.magnification === magnification) {
+			worker.postMessage(taskInfo);
+			worker.idle = false;
+			rowIndex++;
+		}
 	}
 }
 

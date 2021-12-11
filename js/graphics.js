@@ -18,28 +18,29 @@ the width and height of the window.
 */
 function setUpGraphics() {
 	setUpCanvas();
-	
-	var width = ((i_max - i_min) * canvas.width / canvas.height);
-	var r_mid = (r_max + r_min) / 2;
-	r_min = r_mid - width/2;
-	r_max = r_mid + width/2;
-
-	rowData = canvasContext.createImageData(canvas.width, 1);
+	setUpFractalSpecBasedOnCanvas();
 	makePalette();
 }
 
 function setUpCanvas() {
 	canvas = document.getElementById("fractal");
-	canvas.width = window.innerWidth;
-	canvas.height = window.innerHeight;
-	canvas.onclick = function(event) {
-		reComputeFractalSpecBasedOn({x: event.clientX, y: event.clientY});
-		startWorkers();
-	};
+	setCanvasSizeToWindowInnerSize();
+	canvas.onclick = enlargeFractal;
 	canvasContext = canvas.getContext("2d");
 }
 
-function reComputeFractalSpecBasedOn(point) {
+function setCanvasSizeToWindowInnerSize() {
+	canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight;
+}
+
+function enlargeFractal(event) {
+	magnification++;
+	updateFractalSpecBasedOn({x: event.clientX, y: event.clientY});
+	startWorkers();
+}
+
+function updateFractalSpecBasedOn(point) {
 	var width = r_max - r_min;
 	var height = i_min - i_max;
 	var click_r = r_min + width * point.x / canvas.width;
@@ -49,6 +50,14 @@ function reComputeFractalSpecBasedOn(point) {
 	r_max = click_r + width / zoom;
 	i_min = click_i + height / zoom;
 	i_max = click_i - height / zoom;
+}
+
+function setUpFractalSpecBasedOnCanvas() {
+	var width = ((i_max - i_min) * canvas.width / canvas.height);
+	var r_mid = (r_max + r_min) / 2;
+	r_min = r_mid - width / 2;
+	r_max = r_mid + width / 2;
+	rowData = canvasContext.createImageData(canvas.width, 1);
 }
 
 /* 
@@ -62,6 +71,12 @@ function makePalette() {
 	}
 	for (i = 0; i <= max_iter; i++)
 		palette.push([wrap(7*i), wrap(5*i), wrap(11*i)]);
+}
+
+function resizeFractalToWindowSize() {
+	setCanvasSizeToWindowInnerSize();
+	setUpFractalSpecBasedOnCanvas();
+	startWorkers();
 }
 
 /* 
